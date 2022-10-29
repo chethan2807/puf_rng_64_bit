@@ -23,6 +23,7 @@ module rng_puf(
   (* dont_touch = "yes" *) wire first_mux_out, second_mux_out;  // output of muxes that go into the counters
   (* dont_touch = "yes" *) wire fin1, fin2;     // outputs of the counters that go into the race arbiter
   (* dont_touch = "yes" *) wire [31:0] pmc1_out, pmc2_out;  // for debug, output of the counters
+  (* dont_touch = "yes" *) wire cnt_en;  //
 
    genvar i;
 	generate
@@ -35,9 +36,9 @@ module rng_puf(
   (* dont_touch = "yes" *) mux_32to1 first_mux(ro_out[31:0], challenge[4:0], first_mux_out);
   (* dont_touch = "yes" *) mux_32to1 second_mux(ro_out[63:32], challenge[9:5], second_mux_out);
 
-  (* dont_touch = "yes" *) post_mux_counter pmc1(pmc1_out, fin1, enable[0], first_mux_out, reset);
+  (* dont_touch = "yes" *) post_mux_counter pmc1(pmc1_out, fin1, cnt_en, first_mux_out, reset);
 
-  (* dont_touch = "yes" *) post_mux_counter pmc2(pmc2_out, fin2, enable[0], second_mux_out, reset);
+  (* dont_touch = "yes" *) post_mux_counter pmc2(pmc2_out, fin2, cnt_en, second_mux_out, reset);
 
 assign cnt1_led = pmc1_out > pmc2_out ;
 assign cnt2_led = pmc2_out > pmc1_out ;
@@ -45,6 +46,7 @@ assign cnt1_finish = fin1;
 assign cnt2_finish = fin2 ;
 assign mux1_clk = first_mux_out ;
 assign mux2_clk = second_mux_out ;
+assign cnt_en = enable[0] & ~ (fin1 | fin2)  ;
 
 
 endmodule
